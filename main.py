@@ -626,7 +626,7 @@ app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # replace with your frontend URL(s)
+    allow_origins=["https://metalensai.vercel.app"],  # replace with your frontend URL(s)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],  # needed for X-Databricks-Host / X-Databricks-Token
