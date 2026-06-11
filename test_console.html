@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UnityDoc API Tester</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #1a1d29;
+    --border: #2a2e3f;
+    --text: #e4e6eb;
+    --muted: #9aa0b0;
+    --accent: #6366f1;
+    --accent-hover: #4f52d6;
+    --green: #22c55e;
+    --red: #ef4444;
+    --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    min-height: 100vh;
+  }
+  .sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .main {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+  }
+  h1 { font-size: 18px; margin: 0 0 16px; }
+  h2 { font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 24px 0 8px; }
+  h2:first-of-type { margin-top: 0; }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; margin-top: 10px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 8px 10px;
+    background: #11131b;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+  }
+  textarea { font-family: var(--mono); resize: vertical; }
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--accent);
+    color: white;
+    margin-top: 10px;
+    width: 100%;
+    transition: background 0.15s;
+  }
+  button:hover { background: var(--accent-hover); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  button.secondary:hover { background: var(--border); }
+  button.danger { background: var(--red); }
+  button.small { width: auto; padding: 4px 10px; font-size: 12px; margin-top: 0; }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #11131b;
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+  .dot.connected { background: var(--green); }
+
+  .list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+  .list-item:hover { background: var(--border); }
+  .list-item.active { background: var(--accent); color: white; }
+  .list-item .type { font-size: 11px; color: var(--muted); }
+  .list-item.active .type { color: rgba(255,255,255,0.7); }
+
+  .breadcrumb { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .breadcrumb b { color: var(--text); }
+
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .tab {
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+  }
+  .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  pre {
+    background: #11131b;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .markdown-box { background: #11131b; border: 1px solid var(--border); border-radius: 8px; padding: 16px; font-size: 13px; line-height: 1.7; }
+  .markdown-box h1 { font-size: 20px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  .markdown-box h2 { font-size: 16px; text-transform: none; letter-spacing: normal; color: var(--text); margin-top: 16px; }
+  .markdown-box table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 8px 0; }
+  .markdown-box th, .markdown-box td { border: 1px solid var(--border); padding: 6px 8px; text-align: left; }
+  .markdown-box th { background: #1a1d29; }
+  .markdown-box code { background: #1a1d29; padding: 1px 5px; border-radius: 4px; font-family: var(--mono); }
+
+  .toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+  .toolbar button { width: auto; margin-top: 0; }
+
+  .empty-state { color: var(--muted); font-size: 13px; text-align: center; padding: 60px 20px; }
+
+  .copilot-box { display: flex; flex-direction: column; height: calc(100vh - 200px); }
+  .copilot-messages { flex: 1; overflow-y: auto; padding: 8px 0; display: flex; flex-direction: column; gap: 12px; }
+  .msg { max-width: 80%; padding: 10px 14px; border-radius: 10px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+  .msg.user { align-self: flex-end; background: var(--accent); color: white; }
+  .msg.bot { align-self: flex-start; background: var(--panel); border: 1px solid var(--border); }
+  .copilot-input { display: flex; gap: 8px; margin-top: 12px; }
+  .copilot-input input { flex: 1; }
+  .copilot-input button { width: auto; margin-top: 0; }
+
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--border); color: var(--muted); margin-left: 6px; }
+  .badge.cached { background: rgba(34,197,94,0.15); color: var(--green); }
+
+  .error-box {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .loading { color: var(--muted); font-size: 13px; padding: 20px; }
+  .schema-toggle { font-size: 11px; color: var(--accent); cursor: pointer; margin-left: 8px; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h1>🗂️ UnityDoc Tester</h1>
+
+  <div id="connStatus" class="status-pill">
+    <span class="dot" id="connDot"></span>
+    <span id="connText">Not connected</span>
+  </div>
+
+  <h2>API Base URL</h2>
+  <input type="text" id="apiBase" placeholder="https://your-backend.onrender.com" value="http://localhost:8000" />
+
+  <h2>Connection</h2>
+  <div id="connectForm">
+    <label>Databricks Host</label>
+    <input type="text" id="dbHost" placeholder="https://adb-xxxx.azuredatabricks.net" />
+    <label>Personal Access Token</label>
+    <input type="password" id="dbToken" placeholder="dapi..." />
+    <button onclick="connect()">Connect</button>
+    <button class="secondary" onclick="useEnvDefault()">Use server default (no session)</button>
+  </div>
+  <div id="disconnectForm" style="display:none">
+    <p style="font-size:12px;color:var(--muted)">Session: <code id="sessionIdDisplay" style="font-size:11px"></code></p>
+    <p style="font-size:12px;color:var(--muted)">Catalogs: <span id="catalogCountDisplay"></span></p>
+    <button class="danger" onclick="disconnect()">Disconnect</button>
+  </div>
+
+  <div id="errorBox"></div>
+
+  <h2>Catalogs <span class="schema-toggle" onclick="loadCatalogs()">↻ refresh</span></h2>
+  <div id="catalogList"><div class="loading">Connect to load catalogs</div></div>
+
+  <h2>Schemas <span class="schema-toggle" id="refreshSchemas" onclick="loadSchemas()" style="display:none">↻ refresh</span></h2>
+  <div id="schemaList"><div class="loading">Select a catalog</div></div>
+
+  <h2>Tables <span class="schema-toggle" id="refreshTables" onclick="loadTables()" style="display:none">↻ refresh</span></h2>
+  <div id="tableList"><div class="loading">Select a schema</div></div>
+</div>
+
+<div class="main">
+  <div class="breadcrumb" id="breadcrumb">No selection</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="markdown" onclick="switchTab('markdown')">📄 Markdown</div>
+    <div class="tab" data-tab="json" onclick="switchTab('json')">🔧 Raw JSON</div>
+    <div class="tab" data-tab="copilot" onclick="switchTab('copilot')">💬 Copilot</div>
+  </div>
+
+  <div id="tab-markdown" class="tab-content">
+    <div class="toolbar">
+      <button onclick="loadDoc(false)">Load / Refresh View</button>
+      <button class="secondary" onclick="loadDoc(true)">Force Re-fetch (clear cache)</button>
+      <button class="secondary" onclick="copyMarkdown()">📋 Copy Markdown</button>
+    </div>
+    <div id="cacheBadge"></div>
+    <div id="markdownOutput" class="empty-state">Select a catalog, schema, or table — then click "Load / Refresh View".</div>
+  </div>
+
+  <div id="tab-json" class="tab-content" style="display:none">
+    <div class="toolbar">
+      <button onclick="loadDoc(false)">Load / Refresh View</button>
+    </div>
+    <pre id="jsonOutput" class="empty-state">No data loaded yet.</pre>
+  </div>
+
+  <div id="tab-copilot" class="tab-content" style="display:none">
+    <p style="font-size:12px;color:var(--muted)">
+      Copilot answers using the cached documentation for the current selection.
+      Load the doc in the Markdown/JSON tab first to warm the cache.
+    </p>
+    <div class="copilot-box">
+      <div class="copilot-messages" id="copilotMessages"></div>
+      <div class="copilot-input">
+        <input type="text" id="copilotInput" placeholder="Ask about this catalog/schema/table..." onkeydown="if(event.key==='Enter') askCopilot()" />
+        <button onclick="askCopilot()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Minimal markdown renderer (no external deps) -->
+<script>
+// ── State ─────────────────────────────────────────────────────────
+let sessionId = null;
+let selection = { catalog: null, schema: null, table: null };
+
+function apiBase() {
+  return document.getElementById('apiBase').value.replace(/\/$/, '');
+}
+
+function headers() {
+  const h = { 'Content-Type': 'application/json' };
+  if (sessionId) h['X-Session-ID'] = sessionId;
+  return h;
+}
+
+function showError(msg) {
+  document.getElementById('errorBox').innerHTML = `<div class="error-box">${escapeHtml(msg)}</div>`;
+}
+function clearError() {
+  document.getElementById('errorBox').innerHTML = '';
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ── Connection ────────────────────────────────────────────────────
+async function connect() {
+  clearError();
+  const host = document.getElementById('dbHost').value.trim();
+  const token = document.getElementById('dbToken').value.trim();
+  if (!host || !token) { showError('Host and token are required.'); return; }
+
+  try {
+    const res = await fetch(`${apiBase()}/connect`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ host, token })
+    });
+    const data = await res.json();
+
+    if (!data.connected) {
+      showError(data.error || 'Connection failed.');
+      return;
+    }
+
+    sessionId = data.session_id;
+    setConnected(true, data.catalog_count);
+    await loadCatalogs();
+  } catch (e) {
+    showError(`Request failed: ${e.message}. Check API base URL and CORS settings.`);
+  }
+}
+
+function useEnvDefault() {
+  clearError();
+  sessionId = null;
+  setConnected(true, '?', true);
+  loadCatalogs();
+}
+
+async function disconnect() {
+  clearError();
+  try {
+    await fetch(`${apiBase()}/disconnect`, { method: 'POST', headers: headers() });
+  } catch (e) { /* ignore */ }
+  sessionId = null;
+  setConnected(false);
+  document.getElementById('catalogList').innerHTML = '<div class="loading">Connect to load catalogs</div>';
+  document.getElementById('schemaList').innerHTML = '<div class="loading">Select a catalog</div>';
+  document.getElementById('tableList').innerHTML = '<div class="loading">Select a schema</div>';
+  selection = { catalog: null, schema: null, table: null };
+  updateBreadcrumb();
+}
+
+function setConnected(connected, catalogCount, isEnvDefault = false) {
+  const dot = document.getElementById('connDot');
+  const text = document.getElementById('connText');
+  document.getElementById('connectForm').style.display = connected ? 'none' : 'block';
+  document.getElementById('disconnectForm').style.display = connected ? 'block' : 'none';
+
+  if (connected) {
+    dot.classList.add('connected');
+    text.textContent = isEnvDefault ? 'Connected (server default)' : 'Connected';
+    document.getElementById('sessionIdDisplay').textContent = sessionId || '(none — using server env credentials)';
+    document.getElementById('catalogCountDisplay').textContent = catalogCount;
+  } else {
+    dot.classList.remove('connected');
+    text.textContent = 'Not connected';
+  }
+}
+
+// ── Browse: catalogs / schemas / tables ──────────────────────────
+async function loadCatalogs() {
+  document.getElementById('catalogList').innerHTML = '<div class="loading">Loading...</div>';
+  document.getElementById('schemaList').innerHTML = '<div class="loading">Select a catalog</div>';
+  document.getElementById('tableList').innerHTML = '<div class="loading">Select a schema</div>';
+  document.getElementById('refreshSchemas').style.display = 'none';
+  document.getElementById('refreshTables').style.display = 'none';
+  selection.catalog = null;
+  selection.schema = null;
+  selection.table = null;
+  updateBreadcrumb();
+
+  try {
+    const res = await fetch(`${apiBase()}/catalogs`, { headers: headers() });
+    if (res.status === 401) { handleSessionExpired(); return; }
+    const data = await res.json();
+    const list = document.getElementById('catalogList');
+    if (!data.catalogs || data.catalogs.length === 0) {
+      list.innerHTML = '<div class="loading">No catalogs found</div>';
+      return;
+    }
+    list.innerHTML = data.catalogs.map(c => `
+      <div class="list-item" data-name="${escapeHtml(c.name)}" onclick="selectCatalog('${escapeHtml(c.name)}', this)">
+        <span>${escapeHtml(c.name)}</span>
+        <span class="type">CATALOG</span>
+      </div>
+    `).join('');
+  } catch (e) {
+    showError(`Failed to load catalogs: ${e.message}`);
+  }
+}
+
+function selectCatalog(name, el) {
+  selection.catalog = name;
+  selection.schema = null;
+  selection.table = null;
+  highlightActive('catalogList', el);
+  document.getElementById('schemaList').innerHTML = '<div class="loading">Loading...</div>';
+  document.getElementById('tableList').innerHTML = '<div class="loading">Select a schema</div>';
+  document.getElementById('refreshSchemas').style.display = 'inline';
+  document.getElementById('refreshTables').style.display = 'none';
+  updateBreadcrumb();
+  loadSchemas();
+}
+
+async function loadSchemas() {
+  if (!selection.catalog) return;
+  document.getElementById('schemaList').innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const res = await fetch(`${apiBase()}/catalogs/${selection.catalog}/schemas`, { headers: headers() });
+    if (res.status === 401) { handleSessionExpired(); return; }
+    const data = await res.json();
+    const list = document.getElementById('schemaList');
+    if (!data.schemas || data.schemas.length === 0) {
+      list.innerHTML = '<div class="loading">No schemas found</div>';
+      return;
+    }
+    list.innerHTML = data.schemas.map(s => `
+      <div class="list-item" data-name="${escapeHtml(s.name)}" onclick="selectSchema('${escapeHtml(s.name)}', this)">
+        <span>${escapeHtml(s.name)}</span>
+        <span class="type">SCHEMA</span>
+      </div>
+    `).join('');
+  } catch (e) {
+    showError(`Failed to load schemas: ${e.message}`);
+  }
+}
+
+function selectSchema(name, el) {
+  selection.schema = name;
+  selection.table = null;
+  highlightActive('schemaList', el);
+  document.getElementById('tableList').innerHTML = '<div class="loading">Loading...</div>';
+  document.getElementById('refreshTables').style.display = 'inline';
+  updateBreadcrumb();
+  loadTables();
+}
+
+async function loadTables() {
+  if (!selection.catalog || !selection.schema) return;
+  document.getElementById('tableList').innerHTML = '<div class="loading">Loading...</div>';
+  try {
+    const res = await fetch(`${apiBase()}/catalogs/${selection.catalog}/schemas/${selection.schema}/tables`, { headers: headers() });
+    if (res.status === 401) { handleSessionExpired(); return; }
+    const data = await res.json();
+    const list = document.getElementById('tableList');
+    if (!data.tables || data.tables.length === 0) {
+      list.innerHTML = '<div class="loading">No tables found</div>';
+      return;
+    }
+    list.innerHTML = data.tables.map(t => `
+      <div class="list-item" data-name="${escapeHtml(t.name)}" onclick="selectTable('${escapeHtml(t.name)}', this)">
+        <span>${escapeHtml(t.name)}</span>
+        <span class="type">${escapeHtml(t.type || '')}</span>
+      </div>
+    `).join('');
+  } catch (e) {
+    showError(`Failed to load tables: ${e.message}`);
+  }
+}
+
+function selectTable(name, el) {
+  selection.table = name;
+  highlightActive('tableList', el);
+  updateBreadcrumb();
+}
+
+function highlightActive(listId, el) {
+  document.querySelectorAll(`#${listId} .list-item`).forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function updateBreadcrumb() {
+  const b = document.getElementById('breadcrumb');
+  const { catalog, schema, table } = selection;
+  if (!catalog) { b.innerHTML = 'No selection'; return; }
+  let parts = [`<b>${escapeHtml(catalog)}</b>`];
+  if (schema) parts.push(`<b>${escapeHtml(schema)}</b>`);
+  if (table) parts.push(`<b>${escapeHtml(table)}</b>`);
+  let scope = table ? 'Table doc' : schema ? 'Schema doc' : 'Catalog doc';
+  b.innerHTML = parts.join(' / ') + ` <span class="badge">${scope}</span>`;
+}
+
+// ── Doc fetching ──────────────────────────────────────────────────
+function endpointForSelection() {
+  const { catalog, schema, table } = selection;
+  if (!catalog) return null;
+  if (catalog && schema && table) return `/doc/${catalog}/${schema}/${table}`;
+  if (catalog && schema) return `/schema-doc/${catalog}/${schema}`;
+  return `/catalog-doc/${catalog}`;
+}
+
+function cacheDeleteEndpointForSelection() {
+  const { catalog, schema, table } = selection;
+  if (catalog && schema && table) return `/doc/${catalog}/${schema}/${table}/cache`;
+  if (catalog && schema) return `/schema-doc/${catalog}/${schema}/cache`;
+  return `/catalog-doc/${catalog}/cache`;
+}
+
+let lastDoc = null;
+
+async function loadDoc(forceRefresh) {
+  clearError();
+  const endpoint = endpointForSelection();
+  if (!endpoint) { showError('Select a catalog first.'); return; }
+
+  document.getElementById('markdownOutput').innerHTML = '<div class="loading">Loading... (AI generation may take a while for large schemas)</div>';
+  document.getElementById('jsonOutput').textContent = 'Loading...';
+
+  try {
+    if (forceRefresh) {
+      await fetch(`${apiBase()}${cacheDeleteEndpointForSelection()}`, { method: 'DELETE', headers: headers() });
+    }
+
+    const res = await fetch(`${apiBase()}${endpoint}`, { headers: headers() });
+    if (res.status === 401) { handleSessionExpired(); return; }
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError(data.error || JSON.stringify(data));
+      document.getElementById('markdownOutput').innerHTML = '<div class="empty-state">Error loading doc.</div>';
+      document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
+      return;
+    }
+
+    lastDoc = data;
+
+    // Cache badge
+    const badge = document.getElementById('cacheBadge');
+    if (data._cache) {
+      badge.innerHTML = `<span class="badge cached">⚡ cached — age ${data._cache.age_seconds}s, expires in ${data._cache.expires_in_seconds}s</span>`;
+    } else {
+      badge.innerHTML = `<span class="badge">freshly generated</span>`;
+    }
+
+    // Markdown
+    const md = data.documentation || '*No documentation field in response.*';
+    document.getElementById('markdownOutput').innerHTML = `<div class="markdown-box">${renderMarkdown(md)}</div>`;
+
+    // JSON
+    document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
+
+  } catch (e) {
+    showError(`Failed to load doc: ${e.message}`);
+    document.getElementById('markdownOutput').innerHTML = '<div class="empty-state">Request failed.</div>';
+  }
+}
+
+function copyMarkdown() {
+  if (!lastDoc || !lastDoc.documentation) {
+    showError('No markdown loaded yet.');
+    return;
+  }
+  navigator.clipboard.writeText(lastDoc.documentation).then(() => {
+    const btn = event.target;
+    const original = btn.textContent;
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = original, 1500);
+  });
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+  document.querySelector(`.tab[data-tab="${name}"]`).classList.add('active');
+  document.getElementById(`tab-${name}`).style.display = 'block';
+}
+
+// ── Copilot ───────────────────────────────────────────────────────
+async function askCopilot() {
+  const input = document.getElementById('copilotInput');
+  const question = input.value.trim();
+  if (!question) return;
+  if (!selection.catalog) { showError('Select a catalog first.'); return; }
+
+  const messages = document.getElementById('copilotMessages');
+  messages.innerHTML += `<div class="msg user">${escapeHtml(question)}</div>`;
+  input.value = '';
+  messages.scrollTop = messages.scrollHeight;
+
+  const loadingId = 'loading-' + Date.now();
+  messages.innerHTML += `<div class="msg bot" id="${loadingId}">Thinking...</div>`;
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+    const res = await fetch(`${apiBase()}/copilot`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({
+        question,
+        catalog: selection.catalog,
+        schema: selection.schema,
+        table: selection.table
+      })
+    });
+    if (res.status === 401) { handleSessionExpired(); return; }
+    const data = await res.json();
+    const el = document.getElementById(loadingId);
+
+    if (!res.ok) {
+      el.textContent = data.error || 'Error from copilot.';
+      el.style.color = 'var(--red)';
+      return;
+    }
+
+    el.textContent = data.answer;
+  } catch (e) {
+    document.getElementById(loadingId).textContent = `Request failed: ${e.message}`;
+  }
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function handleSessionExpired() {
+  showError('Session expired or invalid. Please reconnect.');
+  sessionId = null;
+  setConnected(false);
+}
+
+// ── Tiny markdown renderer ────────────────────────────────────────
+function renderMarkdown(md) {
+  let html = escapeHtml(md);
+
+  // Tables
+  html = html.replace(/((?:^\|.*\|\s*\n)+)/gm, (table) => {
+    const rows = table.trim().split('\n').map(r => r.trim());
+    if (rows.length < 2) return table;
+    const header = rows[0].split('|').slice(1, -1).map(c => c.trim());
+    const body = rows.slice(2).map(r => r.split('|').slice(1, -1).map(c => c.trim()));
+    let out = '<table><thead><tr>' + header.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
+    body.forEach(r => {
+      out += '<tr>' + r.map(c => `<td>${c}</td>`).join('') + '</tr>';
+    });
+    out += '</tbody></table>';
+    return out;
+  });
+
+  // Headings
+  html = html.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.*)$/gm, '<h1>$1</h1>');
+
+  // Bold / italic / code
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // Horizontal rules
+  html = html.replace(/^---$/gm, '<hr/>');
+  html = html.replace(/^===$/gm, '<hr/>');
+
+  // Paragraphs (lines not already wrapped in tags)
+  html = html.split('\n').map(line => {
+    if (line.match(/^<(h\d|table|hr|\/table)/)) return line;
+    if (line.trim() === '') return '';
+    if (line.match(/^<tr|^<\/tr|^<td|^<th|^<thead|^<tbody/)) return line;
+    return `<p>${line}</p>`;
+  }).join('\n');
+
+  return html;
+}
+</script>
+
+</body>
+</html>
